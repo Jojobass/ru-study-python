@@ -1,4 +1,7 @@
-from flask import Flask
+from flask import Flask, request
+
+
+user_data: dict[str, dict] = dict()
 
 
 class FlaskExercise:
@@ -28,4 +31,46 @@ class FlaskExercise:
 
     @staticmethod
     def configure_routes(app: Flask) -> None:
-        pass
+        global user_data
+        user_data = dict()
+        app.add_url_rule("/user", view_func=FlaskExercise.create_user, methods=["POST"])
+        app.add_url_rule("/user/<name>", view_func=FlaskExercise.get_user_data, methods=["GET"])
+        app.add_url_rule("/user/<name>", view_func=FlaskExercise.patch_user_data, methods=["PATCH"])
+        app.add_url_rule("/user/<name>", view_func=FlaskExercise.delete_user, methods=["DELETE"])
+
+    @staticmethod
+    def create_user() -> tuple[dict, int]:
+        request_ = request.json
+        if "name" in request_:
+            global user_data
+            user_data[request_["name"]] = {}
+            return {"data": f"User {request_['name']} is created!"}, 201
+        return {"errors": {"name": "This field is required"}}, 422
+
+    @staticmethod
+    def get_user_data(name: str) -> tuple[dict, int]:
+        global user_data
+        if name in user_data:
+            return {"data": f"My name is {name}"}, 200
+        else:
+            return {"errors": "Not found"}, 404
+
+    @staticmethod
+    def patch_user_data(name: str) -> tuple[dict, int]:
+        request_ = request.get_json()
+        global user_data
+        if name in user_data:
+            user_data[request_["name"]] = user_data[name]
+            del user_data[name]
+            return {"data": f"My name is {request_['name']}"}, 200
+        else:
+            return {"errors": "Not found"}, 404
+
+    @staticmethod
+    def delete_user(name: str) -> tuple[dict, int]:
+        global user_data
+        if name in user_data:
+            del user_data[name]
+            return {"data": f"User {name} is deleted"}, 204
+        else:
+            return {"errors": "Not found"}, 404

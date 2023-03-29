@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from flask import Flask
 from flask.testing import FlaskClient
-import pytest
+import pytest  # noqa: F401
 
 from .flask_excercises import FlaskExercise
 
@@ -38,18 +38,19 @@ class TestFlaskExercise:
         assert response.status_code == HTTPStatus.OK
         return response.get_json()
 
-    def delete_user(self, username: str) -> dict:
+    # removed return response.get_json()
+    # as it always raises exception when status is 204 (NO CONTENT)
+    def delete_user(self, username: str) -> None:
         response = self.flask_client.delete(f"/user/{username}")
         assert response.status_code == HTTPStatus.NO_CONTENT
-        return response.get_json()
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_create(self) -> None:
         response = self.create_user({"name": "Heisenberg"})
 
         assert response == {"data": "User Heisenberg is created!"}
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_unprocessable_entity(self) -> None:
         response = self.flask_client.post(
             "/user",
@@ -58,23 +59,25 @@ class TestFlaskExercise:
         )
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        assert response == {"errors": {"name": "This field is required"}}
+        assert response.get_json() == {
+            "errors": {"name": "This field is required"}
+        }  # added .get_json() so test actually works
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_get(self) -> None:
         self.create_user({"name": "Heisenberg"})
         response = self.retrieve_user("Heisenberg")
 
         assert response == {"data": "My name is Heisenberg"}
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_update(self) -> None:
         self.create_user({"name": "Heisenberg"})
 
         response = self.update_user("Heisenberg", {"name": "Jesse"})
         assert response == {"data": "My name is Jesse"}
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_delete(self) -> None:
         self.create_user({"name": "Heisenberg"})
         self.delete_user("Heisenberg")
@@ -82,7 +85,7 @@ class TestFlaskExercise:
         response = self.flask_client.get("/user/Heisenberg")
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_not_found(self) -> None:
         response = self.flask_client.get("/404")
         assert response.status_code == HTTPStatus.NOT_FOUND
