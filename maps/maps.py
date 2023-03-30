@@ -15,19 +15,16 @@ class MapExercise:
         """
 
         def process_movie(movie: dict) -> float:
-            if movie["rating_kinopoisk"] and len(movie["country"].split(",")) > 1:
+            if movie["rating_kinopoisk"] and movie["country"].count(","):
                 return float(movie["rating_kinopoisk"])
             return 0.0
 
         ratings = map(process_movie, list_of_movies)
-        num_movies = 0
-        total_rating = 0.0
-        for rating in ratings:
-            if rating >= 1:
-                num_movies += 1
-                total_rating += rating
+        ratings_clean = list(filter(lambda rating: rating > 0, ratings))
+        num_movies = len(ratings_clean)
+        sum_rating = sum(ratings_clean)
         if num_movies:
-            return total_rating / num_movies
+            return sum_rating / num_movies
         return 0.0
 
     @staticmethod
